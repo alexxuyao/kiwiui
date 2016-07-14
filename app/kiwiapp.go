@@ -15,6 +15,8 @@ func main() {
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", c.IndexController)
 
+	r.HandleFunc("/cmpList/{page:[0-9]+}", c.CmpListController)
+
 	r.HandleFunc("/static/{file:.*}", c.StaticController)
 
 	// Bind to a port and pass our router in
