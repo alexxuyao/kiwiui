@@ -2,14 +2,11 @@
 package controller
 
 import (
-	"html/template"
 	"net/http"
+
+	util "github.com/alexxuyao/kiwiui/util"
 )
 
 func IndexController(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("hello, this is the index handler"))
-	tpl, _ := template.New("name").ParseFiles("")
-
-	tpl.Execute(w, nil)
-
+	util.Tpl(w, "index.html", nil)
 }
