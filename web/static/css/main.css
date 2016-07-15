@@ -1,1 +1,8 @@
-main css
+.cmp-define{
+	float:left;
+	width:80px;
+	height:80px;
+	margin:8px;
+	background:#BBB;
+	border:1px solid #CCC;
+}
