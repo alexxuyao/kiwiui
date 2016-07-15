@@ -1,15 +1,16 @@
 // Basic usage
 var KiwiBox = classdef({
-  constructor: function() {
-    // ...
-  },
+	constructor : function() {
+		// ...
+		
+	},
 
-  someFunc: function() {
-    // ...
-  }
+	initComponent : function() {
+		// ...
+	}
 });
 
-$(document).ready(function(){
+$(document).ready(function() {
 	var box = new KiwiBox();
-	
+
 });
