@@ -19,7 +19,7 @@ func CmpListController(w http.ResponseWriter, r *http.Request) {
 	// return json
 	// page := mux.Vars(r)["page"]
 
-	data := make([]entity.CmpDefineEntity, 10, 10)
+	data := make([]entity.CmpDefineEntity, 12, 12)
 	// data = append(data, entity.CmpDefineEntity{})
 	dlen := len(data)
 	for i := 0; i < dlen; i++ {
@@ -28,4 +28,8 @@ func CmpListController(w http.ResponseWriter, r *http.Request) {
 
 	resp := util.ListJsonResp{JsonResp: util.JsonResp{Success: true, Data: data, Message: ""}, Total: 10, TotalPage: 1, PrePage: 10, CurrentPage: 1}
 	util.Json(w, resp)
+}
+
+func GetRenderHtmlController(w http.ResponseWriter, r *http.Request) {
+
 }

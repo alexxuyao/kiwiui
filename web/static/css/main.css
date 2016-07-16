@@ -4,5 +4,9 @@
 	height:80px;
 	margin:8px;
 	background:#BBB;
-	border:1px solid #CCC;
+	cursor:move;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
 }
