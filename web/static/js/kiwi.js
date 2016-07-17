@@ -10,32 +10,78 @@ var CmpNode = classdef({
 	attrs : {}, //{attrName : attrValue}
 	
 	constructor: function(cmpDefine) {    
-		this.cmpDefine = cmpDefine;
+		this.cmpDefine = cmpDefine;		
 	},
 	
-	getRenderHtml : function(){
+	getRenderHtml : function(func){
 		
+		var cloneNode = function(node){
+			var jobj = jQuery.extend(true, {}, node);
+			delete jobj['parent'];
+			
+			for (var i in jobj['positions']){
+				for(var j in jobj['positions'][i]){
+					jobj['positions'][i][j] = cloneNode(jobj['positions'][i][j]);
+				}
+			}
+			
+			/*
+			// change the position struct
+			var nposition = []; //[{positionName : '', children : []}]
+			for(var i in jobj.position){
+				var pitem = {
+					positionName : i,
+					children : jobj.position[i];
+				}
+			}
+			jobj.position = nposition;
+			
+			// change the attrs struct
+			var nattrs = []; //[{attrName : '', attrValue : ''}]
+			*/
+		
+			// delete jobj['positions']
+			return jobj;
+		}
+		
+		var jobj = cloneNode(this);
+
+		var djson = JSON.stringify(jobj);
+		$.post('/getRenderHtml', djson, function(ret){
+			alert(ret);
+		});
 	},
 	
 	addChild : function(child, position){
 		
 	},
 	
+	// 从父节点把自己删除
 	remove : function(){
 		
 	},
 	
 	renderTo : function(dom){
-		var elms = this.getRenderHtml();
-		var header = elms.header;
-		var body = elms.body;
+		var self = this;
+		self.getRenderHtml(function(elms){
+			if(!elms){
+				return;
+			}
+			
+			var header = elms.header;
+			var body = elms.body;
+			
+			// remove old headers
+			// $('head').find('.old-header').remove();
+			// append new headers
+			
+			// refresh the body
+			// bind the events
+		});
+	},
+	
+	setAttr : function(name, value){
 		
-		// remove old headers
-		// $('head').find('.old-header').remove();
-		// append new headers
-		
-		// refresh the body
-		// bind the events
 	}
 });
 
@@ -100,12 +146,12 @@ var KwComponentBox = classdef({
 	},
 
 	initList : function(ret){	
-		if(ret.Data){
+		if(ret.data){
 			var html = '';
-			for(var i in ret.Data){
-				var item = ret.Data[i];
+			for(var i in ret.data){
+				var item = ret.data[i];
 				html += '<div class="cmp-define">';
-				html += item.Title;
+				html += item.title;
 				html += '</div>';
 			}
 			
@@ -128,10 +174,11 @@ $(document).ready(function(){
 	var cmpList = new KwComponentBox(ctx);
 	
 	ctx.initRootCmp({
-		id : 'pcRoot',
 		name  : 'pcRoot',
+		title : 'pcRoot',
 		leaf : false,
 		category : 'system',
+		thumbnail : '',
 		attrs : [],
 		events : []
 	});

@@ -2,6 +2,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/alexxuyao/kiwiui/entity"
@@ -30,6 +31,10 @@ func CmpListController(w http.ResponseWriter, r *http.Request) {
 	util.Json(w, resp)
 }
 
+// 渲染组件
 func GetRenderHtmlController(w http.ResponseWriter, r *http.Request) {
-
+	var node entity.CmpNodeEntity
+	util.GetRequestBody(r, &node)
+	fmt.Println(node)
+	util.Json(w, nil)
 }

@@ -16,6 +16,7 @@ func main() {
 	r.HandleFunc("/", c.IndexController)
 
 	r.HandleFunc("/cmpList/{page:[0-9]+}", c.CmpListController)
+	r.HandleFunc("/getRenderHtml", c.GetRenderHtmlController)
 
 	r.HandleFunc("/static/{file:.*}", c.StaticController)
 
