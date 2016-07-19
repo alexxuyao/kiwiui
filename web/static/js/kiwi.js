@@ -1,22 +1,25 @@
 // Basic usage
 var CmpNode = classdef({
+	id : '',
 	
 	cmpDefine : null,
 	
 	parent : null,
 	
-	positions : {}, //{positonName : [CmpNode, CmpNode]}
+	positions : null, //{positonName : [CmpNode, CmpNode]}
 
-	attrs : {}, //{attrName : attrValue}
+	attrs : null, //{attrName : attrValue}
 	
 	constructor: function(cmpDefine) {    
 		this.cmpDefine = cmpDefine;		
+		this.positions = {};
+		this.attrs = {};
 	},
 	
 	getRenderHtml : function(func){
 		
 		var cloneNode = function(node){
-			var jobj = jQuery.extend(true, {}, node);
+			var jobj = $.extend(true, {}, node);
 			delete jobj['parent'];
 			
 			for (var i in jobj['positions']){
@@ -44,7 +47,18 @@ var CmpNode = classdef({
 	},
 	
 	addChild : function(child, position){
+		if(!this.positions[position]){
+			this.positions[position] = [];
+		}
 		
+		this.positions[position].push(child);
+		var rdom = $("[cmp-id='" + this.id + "']");
+		var pdom = rdom.find(".cmp-position[position='" + position + "']");
+		if(!pdom.length){
+			pdom = rdom;
+		}
+		pdom = pdom.eq(0);
+		child.renderTo(pdom);
 	},
 	
 	// 从父节点把自己删除
@@ -79,11 +93,43 @@ var CmpNode = classdef({
 			      "ui-droppable-hover": "ui-state-hover"
 			    },
 				drop: function( event, ui ) {
-					// TODO
-					$( this ).css( "background", "#EEE" ).append('drop here!');
-					var positonName = '';
-					var targetNode = '';
-					var cmpDefind = '';
+					// TODO 
+					// $( this ).css( "background", "#EEE" ).append('drop here!');
+					
+					// var target = event.target;
+					var targetNode = self;
+					//var cmpDefine = ui.draggable.find('input').val();					
+					var position = $( this ).attr('position');
+					var cmpDefine = {
+						artifactId : 'backendFrame',
+						groupId : 'hybird',
+						title : 'HyBird管理后台框架',
+						leaf : false,
+						category : 'frame',
+						thumbnail : '',
+						attrs : [{
+							name : 'systemName',
+							type : 'input',
+							defaultValue : 'HYBIRD',
+							description : '系统名称',
+							meta : {}
+						}],
+						events : [],
+						libs : [{
+							name : 'jquery',
+							version : '1.10'
+						},{
+							name : 'bootstrap',
+							version : ''
+						},{
+							name : 'font-awesome',
+							version : ''
+						}]
+					};
+					
+					var child = new CmpNode(cmpDefine);
+					child.id = 'newId';
+					targetNode.addChild(child, position);
 					
 				}
 			});
@@ -109,12 +155,13 @@ var KwContext = classdef({
 	cmpTreeRoot : null,
 	
 	constructor: function() {    
-	
+		this.cmpTreeRoot = null;
 	},
 	
 	// 初始化根组件
 	initRootCmp : function(cmpDefine){
 		this.cmpTreeRoot = new CmpNode(cmpDefine);
+		this.cmpTreeRoot.id = 'cmpRoot';
 		this.cmpTreeRoot.renderTo($('#rootContainer'));
 	},
 	
@@ -193,7 +240,8 @@ $(document).ready(function(){
 	var cmpList = new KwComponentBox(ctx);
 	
 	ctx.initRootCmp({
-		name  : 'pcBody',
+		artifactId  : 'pcBody',
+		groupId : 'system',
 		title : 'pcBody',
 		leaf : false,
 		category : 'system',

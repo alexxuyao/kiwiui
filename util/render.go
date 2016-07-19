@@ -15,11 +15,11 @@ import (
 func RenderCmpNode(node entity.CmpNodeEntity) (string, string) {
 
 	cdefine := node.CmpDefine
-	tplfile := kconst.WebPath() + "/components/" + cdefine.Name + "/template.html"
+	tplfile := kconst.WebPath() + "/components/" + cdefine.GroupId + "/" + cdefine.ArtifactId + "/template.html"
 
 	tpl, err := template.ParseFiles(tplfile)
 	data := node.Attrs
-	data["cmpPath"] = "/components/" + cdefine.Name
+	data["cmpPath"] = "/components/" + cdefine.GroupId + "/" + cdefine.ArtifactId
 
 	// fmt.Println(pf.Abs(tplfile))
 	if err != nil {
@@ -32,6 +32,8 @@ func RenderCmpNode(node entity.CmpNodeEntity) (string, string) {
 	// fmt.Println(buf.String())
 
 	doc, _ := goquery.NewDocumentFromReader(&buf)
+	docHead := doc.Find("head")
+	docBody := doc.Find("body")
 
 	if !cdefine.Leaf {
 		// render the child
@@ -56,14 +58,20 @@ func RenderCmpNode(node entity.CmpNodeEntity) (string, string) {
 		nheads += cheads
 		nheads += "<!-- end-head-" + node.Id + " -->"
 
-		doc.Find("head").Append(nheads)
+		docHead.Append(nheads)
 	}
 
 	// all, _ := doc.Html()
 	// fmt.Println(all)
 
-	head, _ := doc.Find("head").Html()
-	body, _ := doc.Find("body").Html()
+	if docBody.Children().Length() != 1 {
+		docBody.Children().WrapAllHtml("<div></div>")
+	}
+
+	docBody.Children().First().SetAttr("cmp-id", node.Id)
+
+	head, _ := docHead.Html()
+	body, _ := docBody.Html()
 
 	return head, body
 }
