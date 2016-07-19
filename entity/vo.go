@@ -21,7 +21,8 @@ type CmpDefineEntity struct {
 }
 
 type CmpNodeEntity struct {
-	CmpDefine CmpDefineEntity            `json:"cmpDefine"` //
+	Id        string                     `json:"id"`        // 组件ID
+	CmpDefine CmpDefineEntity            `json:"cmpDefine"` // 组件定义
 	Positions map[string][]CmpNodeEntity `json:"positions"` //
 	Attrs     map[string]string          `json:"attrs"`     //
 }

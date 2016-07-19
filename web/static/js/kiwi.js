@@ -24,22 +24,7 @@ var CmpNode = classdef({
 					jobj['positions'][i][j] = cloneNode(jobj['positions'][i][j]);
 				}
 			}
-			
-			/*
-			// change the position struct
-			var nposition = []; //[{positionName : '', children : []}]
-			for(var i in jobj.position){
-				var pitem = {
-					positionName : i,
-					children : jobj.position[i];
-				}
-			}
-			jobj.position = nposition;
-			
-			// change the attrs struct
-			var nattrs = []; //[{attrName : '', attrValue : ''}]
-			*/
-		
+								
 			// delete jobj['positions']
 			return jobj;
 		}
@@ -48,7 +33,13 @@ var CmpNode = classdef({
 
 		var djson = JSON.stringify(jobj);
 		$.post('/getRenderHtml', djson, function(ret){
-			alert(ret);
+			// alert(ret);
+			if(ret.success){
+				func(ret.data);
+			}else{
+				alert(ret.message);
+			}
+			
 		});
 	},
 	
@@ -63,20 +54,48 @@ var CmpNode = classdef({
 	
 	renderTo : function(dom){
 		var self = this;
-		self.getRenderHtml(function(elms){
-			if(!elms){
+		self.getRenderHtml(function(html){
+			if(!html){
 				return;
 			}
 			
-			var header = elms.header;
-			var body = elms.body;
+			var head = html.head;
+			var body = html.body;
 			
 			// remove old headers
 			// $('head').find('.old-header').remove();
+			
 			// append new headers
+			$('head').append(head);
+			dom.html(body);
 			
 			// refresh the body
 			// bind the events
+			dom.find( ".cmp-position" ).droppable({
+				accept: ".cmp-define",
+				greedy: true,
+			    classes: {
+			      "ui-droppable-active": "ui-state-active",
+			      "ui-droppable-hover": "ui-state-hover"
+			    },
+				drop: function( event, ui ) {
+					// TODO
+					$( this ).css( "background", "#EEE" ).append('drop here!');
+					var positonName = '';
+					var targetNode = '';
+					var cmpDefind = '';
+					
+				}
+			});
+		
+			dom.find( ".not-drop" ).droppable({
+				accept: ".cmp-define",
+				greedy: true,	    
+				drop: function( event, ui ) {
+					return false;
+				}
+			});
+			
 		});
 	},
 	
@@ -174,8 +193,8 @@ $(document).ready(function(){
 	var cmpList = new KwComponentBox(ctx);
 	
 	ctx.initRootCmp({
-		name  : 'pcRoot',
-		title : 'pcRoot',
+		name  : 'pcBody',
+		title : 'pcBody',
 		leaf : false,
 		category : 'system',
 		thumbnail : '',
@@ -183,6 +202,7 @@ $(document).ready(function(){
 		events : []
 	});
 
+	/*
 	$( ".cmp-position" ).droppable({
 		accept: ".cmp-define",
 		greedy: true,
@@ -202,4 +222,5 @@ $(document).ready(function(){
 			return false;
 		}
 	});
+	*/
 });

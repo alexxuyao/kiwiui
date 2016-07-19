@@ -2,7 +2,7 @@
 package controller
 
 import (
-	"fmt"
+	//	"fmt"
 	"net/http"
 
 	"github.com/alexxuyao/kiwiui/entity"
@@ -35,6 +35,10 @@ func CmpListController(w http.ResponseWriter, r *http.Request) {
 func GetRenderHtmlController(w http.ResponseWriter, r *http.Request) {
 	var node entity.CmpNodeEntity
 	util.GetRequestBody(r, &node)
-	fmt.Println(node)
-	util.Json(w, nil)
+	//	fmt.Println(node)
+	head, body := util.RenderCmpNode(node)
+	ret := make(map[string]string)
+	ret["head"] = head
+	ret["body"] = body
+	util.Json(w, util.JsonResp{Success: true, Data: ret, Message: ""})
 }

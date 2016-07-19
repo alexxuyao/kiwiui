@@ -14,7 +14,7 @@ import (
 func StaticController(w http.ResponseWriter, r *http.Request) {
 	fname := mux.Vars(r)["file"]
 	fmt.Println(fname)
-	fname = kconst.WebPath() + "/static/" + fname
+	fname = kconst.WebPath() + "/" + fname
 	nf, _ := pf.Abs(fname)
 	fmt.Println(nf)
 	http.ServeFile(w, r, fname)

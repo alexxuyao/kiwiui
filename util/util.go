@@ -34,9 +34,9 @@ func GetRequestByte(r *http.Request) []byte {
 
 func GetRequestBody(r *http.Request, v interface{}) {
 	b := GetRequestByte(r)
-	fmt.Println(string(b))
-	a := `{"cmpDefine":{"id":"pcRoot","name":"pcRoot","leaf":false,"category":"system","attrs":[],"events":[]},"positions":{"aa" : [{"cmpDefine":{"id":"pcRoot","name":"pcRoot","leaf":false,"category":"system","attrs":[],"events":[]},"positions":{"bb" : []},"attrs":{}}]},"attrs":{"bb" : "cc", "ee": "ff"}}`
-	json.Unmarshal([]byte(a), v)
+	// fmt.Println(string(b))
+	// a := `{"cmpDefine":{"id":"pcRoot","name":"pcRoot","leaf":false,"category":"system","attrs":[],"events":[]},"positions":{"aa" : [{"cmpDefine":{"id":"pcRoot","name":"pcRoot","leaf":false,"category":"system","attrs":[],"events":[]},"positions":{"bb" : []},"attrs":{}}]},"attrs":{"bb" : "cc", "ee": "ff"}}`
+	json.Unmarshal([]byte(b), v)
 }
 
 // 用来表示一个json返回
