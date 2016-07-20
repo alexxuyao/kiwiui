@@ -1,22 +1,25 @@
 // Basic usage
 var CmpNode = classdef({
+	id : '',
 	
 	cmpDefine : null,
 	
 	parent : null,
 	
-	positions : {}, //{positonName : [CmpNode, CmpNode]}
+	positions : null, //{positonName : [CmpNode, CmpNode]}
 
-	attrs : {}, //{attrName : attrValue}
+	attrs : null, //{attrName : attrValue}
 	
 	constructor: function(cmpDefine) {    
 		this.cmpDefine = cmpDefine;		
+		this.positions = {};
+		this.attrs = {};
 	},
 	
 	getRenderHtml : function(func){
 		
 		var cloneNode = function(node){
-			var jobj = jQuery.extend(true, {}, node);
+			var jobj = $.extend(true, {}, node);
 			delete jobj['parent'];
 			
 			for (var i in jobj['positions']){
@@ -24,22 +27,7 @@ var CmpNode = classdef({
 					jobj['positions'][i][j] = cloneNode(jobj['positions'][i][j]);
 				}
 			}
-			
-			/*
-			// change the position struct
-			var nposition = []; //[{positionName : '', children : []}]
-			for(var i in jobj.position){
-				var pitem = {
-					positionName : i,
-					children : jobj.position[i];
-				}
-			}
-			jobj.position = nposition;
-			
-			// change the attrs struct
-			var nattrs = []; //[{attrName : '', attrValue : ''}]
-			*/
-		
+								
 			// delete jobj['positions']
 			return jobj;
 		}
@@ -48,12 +36,29 @@ var CmpNode = classdef({
 
 		var djson = JSON.stringify(jobj);
 		$.post('/getRenderHtml', djson, function(ret){
-			alert(ret);
+			// alert(ret);
+			if(ret.success){
+				func(ret.data);
+			}else{
+				alert(ret.message);
+			}
+			
 		});
 	},
 	
 	addChild : function(child, position){
+		if(!this.positions[position]){
+			this.positions[position] = [];
+		}
 		
+		this.positions[position].push(child);
+		var rdom = $("[cmp-id='" + this.id + "']");
+		var pdom = rdom.find(".cmp-position[position='" + position + "']");
+		if(!pdom.length){
+			pdom = rdom;
+		}
+		pdom = pdom.eq(0);
+		child.renderTo(pdom);
 	},
 	
 	// 从父节点把自己删除
@@ -63,20 +68,80 @@ var CmpNode = classdef({
 	
 	renderTo : function(dom){
 		var self = this;
-		self.getRenderHtml(function(elms){
-			if(!elms){
+		self.getRenderHtml(function(html){
+			if(!html){
 				return;
 			}
 			
-			var header = elms.header;
-			var body = elms.body;
+			var head = html.head;
+			var body = html.body;
 			
 			// remove old headers
 			// $('head').find('.old-header').remove();
+			
 			// append new headers
+			$('head').append(head);
+			dom.html(body);
 			
 			// refresh the body
 			// bind the events
+			dom.find( ".cmp-position" ).droppable({
+				accept: ".cmp-define",
+				greedy: true,
+			    classes: {
+			      "ui-droppable-active": "ui-state-active",
+			      "ui-droppable-hover": "ui-state-hover"
+			    },
+				drop: function( event, ui ) {
+					// TODO 
+					// $( this ).css( "background", "#EEE" ).append('drop here!');
+					
+					// var target = event.target;
+					var targetNode = self;
+					//var cmpDefine = ui.draggable.find('input').val();					
+					var position = $( this ).attr('position');
+					var cmpDefine = {
+						artifactId : 'backendFrame',
+						groupId : 'hybird',
+						title : 'HyBird管理后台框架',
+						leaf : false,
+						category : 'frame',
+						thumbnail : '',
+						attrs : [{
+							name : 'systemName',
+							type : 'input',
+							defaultValue : 'HYBIRD',
+							description : '系统名称',
+							meta : {}
+						}],
+						events : [],
+						libs : [{
+							name : 'jquery',
+							version : '1.10'
+						},{
+							name : 'bootstrap',
+							version : '3'
+						},{
+							name : 'font-awesome',
+							version : '4.5'
+						}]
+					};
+					
+					var child = new CmpNode(cmpDefine);
+					child.id = 'newId';
+					targetNode.addChild(child, position);
+					
+				}
+			});
+		
+			dom.find( ".not-drop" ).droppable({
+				accept: ".cmp-define",
+				greedy: true,	    
+				drop: function( event, ui ) {
+					return false;
+				}
+			});
+			
 		});
 	},
 	
@@ -90,12 +155,13 @@ var KwContext = classdef({
 	cmpTreeRoot : null,
 	
 	constructor: function() {    
-	
+		this.cmpTreeRoot = null;
 	},
 	
 	// 初始化根组件
 	initRootCmp : function(cmpDefine){
 		this.cmpTreeRoot = new CmpNode(cmpDefine);
+		this.cmpTreeRoot.id = 'cmpRoot';
 		this.cmpTreeRoot.renderTo($('#rootContainer'));
 	},
 	
@@ -174,8 +240,9 @@ $(document).ready(function(){
 	var cmpList = new KwComponentBox(ctx);
 	
 	ctx.initRootCmp({
-		name  : 'pcRoot',
-		title : 'pcRoot',
+		artifactId  : 'pcBody',
+		groupId : 'system',
+		title : 'pcBody',
 		leaf : false,
 		category : 'system',
 		thumbnail : '',
@@ -183,6 +250,7 @@ $(document).ready(function(){
 		events : []
 	});
 
+	/*
 	$( ".cmp-position" ).droppable({
 		accept: ".cmp-define",
 		greedy: true,
@@ -202,4 +270,5 @@ $(document).ready(function(){
 			return false;
 		}
 	});
+	*/
 });
