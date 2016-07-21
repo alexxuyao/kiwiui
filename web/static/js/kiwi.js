@@ -1,37 +1,46 @@
 // Basic usage
 var CmpNode = classdef({
 	id : '',
-	
+
 	cmpDefine : null,
-	
+
 	parent : null,
-	
+
+	context : null,
+
 	positions : null, //{positonName : [CmpNode, CmpNode]}
 
 	attrs : null, //{attrName : attrValue}
-	
-	constructor: function(cmpDefine) {    
-		this.cmpDefine = cmpDefine;		
+
+	constructor: function(config) {
+		// this.cmpDefine = config.cmpDefine;
+		$.extend(true, this, config);
+
 		this.positions = {};
 		this.attrs = {};
 	},
-	
+
 	getRenderHtml : function(func){
-		
+
 		var cloneNode = function(node){
-			var jobj = $.extend(true, {}, node);
-			delete jobj['parent'];
-			
+
+			var jobj = $.extend(true, {}, {
+				id : node.id,
+				cmpDefine : node.cmpDefine,
+				positions : node.positions,
+				attrs : node.attrs
+			});
+
 			for (var i in jobj['positions']){
 				for(var j in jobj['positions'][i]){
 					jobj['positions'][i][j] = cloneNode(jobj['positions'][i][j]);
 				}
 			}
-								
+
 			// delete jobj['positions']
 			return jobj;
 		}
-		
+
 		var jobj = cloneNode(this);
 
 		var djson = JSON.stringify(jobj);
@@ -42,15 +51,15 @@ var CmpNode = classdef({
 			}else{
 				alert(ret.message);
 			}
-			
+
 		});
 	},
-	
+
 	addChild : function(child, position){
 		if(!this.positions[position]){
 			this.positions[position] = [];
 		}
-		
+
 		this.positions[position].push(child);
 		var rdom = $("[cmp-id='" + this.id + "']");
 		var pdom = rdom.find(".cmp-position[position='" + position + "']");
@@ -60,29 +69,31 @@ var CmpNode = classdef({
 		pdom = pdom.eq(0);
 		child.renderTo(pdom);
 	},
-	
+
 	// 从父节点把自己删除
 	remove : function(){
-		
+
 	},
-	
+
 	renderTo : function(dom){
 		var self = this;
 		self.getRenderHtml(function(html){
 			if(!html){
 				return;
 			}
-			
+
+			self.context.processLibs(html.libs);
+
 			var head = html.head;
 			var body = html.body;
-			
+
 			// remove old headers
 			// $('head').find('.old-header').remove();
-			
+
 			// append new headers
 			$('head').append(head);
 			dom.html(body);
-			
+
 			// refresh the body
 			// bind the events
 			dom.find( ".cmp-position" ).droppable({
@@ -93,13 +104,15 @@ var CmpNode = classdef({
 			      "ui-droppable-hover": "ui-state-hover"
 			    },
 				drop: function( event, ui ) {
-					// TODO 
+					// TODO
 					// $( this ).css( "background", "#EEE" ).append('drop here!');
-					
+
 					// var target = event.target;
 					var targetNode = self;
-					//var cmpDefine = ui.draggable.find('input').val();					
+					//var cmpDefine = ui.draggable.find('input').val();
 					var position = $( this ).attr('position');
+
+					// for test
 					var cmpDefine = {
 						artifactId : 'backendFrame',
 						groupId : 'hybird',
@@ -126,58 +139,90 @@ var CmpNode = classdef({
 							version : '4.5'
 						}]
 					};
-					
-					var child = new CmpNode(cmpDefine);
+
+					var child = new CmpNode({
+						cmpDefine : cmpDefine,
+						context : self.context
+					});
+
 					child.id = 'newId';
 					targetNode.addChild(child, position);
-					
+
 				}
 			});
-		
+
 			dom.find( ".not-drop" ).droppable({
 				accept: ".cmp-define",
-				greedy: true,	    
+				greedy: true,
 				drop: function( event, ui ) {
 					return false;
 				}
 			});
-			
+
 		});
 	},
-	
+
 	setAttr : function(name, value){
-		
+
 	}
 });
 
 var KwContext = classdef({
-	
+
 	cmpTreeRoot : null,
-	
-	constructor: function() {    
+
+	libs : null,
+
+	constructor: function() {
 		this.cmpTreeRoot = null;
+		this.libs = {};
 	},
-	
+
 	// 初始化根组件
 	initRootCmp : function(cmpDefine){
-		this.cmpTreeRoot = new CmpNode(cmpDefine);
+		this.cmpTreeRoot = new CmpNode({
+			cmpDefine : cmpDefine,
+			context : this
+		});
 		this.cmpTreeRoot.id = 'cmpRoot';
 		this.cmpTreeRoot.renderTo($('#rootContainer'));
 	},
-	
+
 	// 添加一个组件
-	addComponent: function(cmpDefine, targetCmp, position){
-		
+	processLibs : function(libs){
+
+		for(var i in libs){
+			var libName = i.substring(0, i.lastIndexOf('-'));
+			var libVersion = i.substring(i.lastIndexOf('-') + 1);
+
+			var cVersion = this.libs[libName];
+			if(cVersion){
+				// 库已存在，比较版本
+			}else{
+				var html = '';
+				for (var j in libs[i]['js']){
+					html += '<script type="text/javascript" src="' + libs[i]['js'][j] + '"></script>';
+				}
+				for (var j in libs[i]['css']){
+					html += '<link href="' + libs[i]['css'][j] + '" rel="stylesheet" />';
+				}
+
+				$('head').append(html);
+
+				this.libs[libName] = libVersion;
+			}
+		}
 	}
 });
 
+//
 var KwTreeBox = classdef({
-  constructor: function(ctx) {    
+  constructor: function(ctx) {
 	this.initComponent();
 	this.ctx = ctx;
   },
 
-  initComponent: function() {    
+  initComponent: function() {
 	$( "#dialog" ).dialog({
 		dialogClass: "no-close",
 	  	position: { my: "left bottom", at: "left bottom", of: window }
@@ -185,13 +230,14 @@ var KwTreeBox = classdef({
   }
 });
 
+//组件盒子，
 var KwComponentBox = classdef({
-	constructor: function(ctx) {    
+	constructor: function(ctx) {
 	this.initComponent();
 	this.ctx = ctx;
   },
 
-  initComponent: function() {    
+  initComponent: function() {
 	this.dom = $( "#componentList" );
 	this.dom.dialog({
 		dialogClass: "no-close",
@@ -199,19 +245,19 @@ var KwComponentBox = classdef({
 		width : 400,
 		height : 450
 	});
-	
+
 	this.loadList(1)
-	
+
   },
 
 	loadList : function(page){
 		var self = this;
-		$.get('/cmpList/' + page, function(ret){			
+		$.get('/cmpList/' + page, function(ret){
 			self.initList(ret);
 		});
 	},
 
-	initList : function(ret){	
+	initList : function(ret){
 		if(ret.data){
 			var html = '';
 			for(var i in ret.data){
@@ -220,12 +266,12 @@ var KwComponentBox = classdef({
 				html += item.title;
 				html += '</div>';
 			}
-			
+
 			this.dom.find('.list').append(html);
-			this.dom.find('.cmp-define').draggable({ 
-				cursor: 'move', 
+			this.dom.find('.cmp-define').draggable({
+				cursor: 'move',
 				cursorAt: { top: 50, left: 50 } ,
-				revert: "invalid", 
+				revert: "invalid",
 				helper: "clone",
 				appendTo : 'body',
 				zIndex: 1000
@@ -236,9 +282,9 @@ var KwComponentBox = classdef({
 
 $(document).ready(function(){
 	var ctx = new KwContext();
-	var box = new KwTreeBox(ctx);	
+	var box = new KwTreeBox(ctx);
 	var cmpList = new KwComponentBox(ctx);
-	
+
 	ctx.initRootCmp({
 		artifactId  : 'pcBody',
 		groupId : 'system',
@@ -265,7 +311,7 @@ $(document).ready(function(){
 
 	$( ".not-drop" ).droppable({
 		accept: ".cmp-define",
-		greedy: true,	    
+		greedy: true,
 		drop: function( event, ui ) {
 			return false;
 		}

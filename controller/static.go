@@ -17,5 +17,8 @@ func StaticController(w http.ResponseWriter, r *http.Request) {
 	fname = kconst.WebPath() + "/" + fname
 	nf, _ := pf.Abs(fname)
 	fmt.Println(nf)
+
+	// TODO 判断文件是否在web目录下，防止目录越权
+
 	http.ServeFile(w, r, fname)
 }

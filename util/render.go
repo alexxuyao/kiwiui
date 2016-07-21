@@ -11,17 +11,17 @@ import (
 	"github.com/alexxuyao/kiwiui/entity"
 )
 
+// 渲染组件节点的依赖库
 func RenderCmpLibs(cdefine entity.CmpDefineEntity) map[string]entity.LibDetail {
 	libs := make(map[string]entity.LibDetail)
 
 	for i := range cdefine.Libs {
 		lib := cdefine.Libs[i]
-		libDetail := entity.LibDetail{
-			Lib: lib,
-			Js:  make([]string, 0, 5),
-			Css: make([]string, 0, 5)}
+		libDetail, find := GetLibDetail(lib.Name, lib.Version)
 
-		libs[libDetail.Name] = libDetail
+		if find {
+			libs[libDetail.Name+"-"+libDetail.Version] = libDetail
+		}
 	}
 
 	return libs
@@ -30,9 +30,11 @@ func RenderCmpLibs(cdefine entity.CmpDefineEntity) map[string]entity.LibDetail {
 // 渲染组件节点
 func RenderCmpNode(node entity.CmpNodeEntity) (map[string]entity.LibDetail, string, string) {
 
+	// 查找组件模板
 	cdefine := node.CmpDefine
 	tplfile := kconst.WebPath() + "/components/" + cdefine.GroupId + "/" + cdefine.ArtifactId + "/template.html"
 
+	// 处理组件属性
 	tpl, err := template.ParseFiles(tplfile)
 	data := node.Attrs
 	data["cmpPath"] = "/components/" + cdefine.GroupId + "/" + cdefine.ArtifactId
@@ -43,6 +45,7 @@ func RenderCmpNode(node entity.CmpNodeEntity) (map[string]entity.LibDetail, stri
 		return nil, "", ""
 	}
 
+	// 渲染组件模板
 	var buf bytes.Buffer
 	tpl.Execute(&buf, data)
 	// fmt.Println(buf.String())
@@ -53,10 +56,10 @@ func RenderCmpNode(node entity.CmpNodeEntity) (map[string]entity.LibDetail, stri
 
 	docHead.Children().SetAttr("head-cmp-id", node.Id)
 
-	// parse the libs
+	// 处理组件依赖库
 	libs := RenderCmpLibs(cdefine)
 
-	// parse the children
+	// 如果有子组件，渲染子组件
 	if !cdefine.Leaf {
 		// render the child
 		cheads := ""
