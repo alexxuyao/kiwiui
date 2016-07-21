@@ -19,7 +19,7 @@ func main() {
 	r.HandleFunc("/getRenderHtml", c.GetRenderHtmlController)
 
 	// r.HandleFunc("/static/{file:.*}", c.StaticController)
-	r.HandleFunc("/{file:.*\\.(css|js|jpg|jpeg|png)}", c.StaticController)
+	r.HandleFunc("/{file:.*\\.(css|js|jpg|jpeg|png|otf|eot|svg|ttf|woff|woff2)}", c.StaticController)
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", r))
