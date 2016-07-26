@@ -13,3 +13,17 @@ body{
 .no-close .ui-dialog-titlebar-close {
   display: none;
 }
+
+* {
+	box-sizing:border-box;
+	-moz-box-sizing:border-box; /* Firefox */
+	-webkit-box-sizing:border-box; /* Safari */
+}
+
+#componentList,#dialog {
+	font-size:13px;
+}
+
+.ui-front {
+    z-index: 1000;
+}

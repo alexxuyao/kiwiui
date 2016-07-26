@@ -18,6 +18,17 @@ var CmpNode = classdef({
 
 		this.positions = {};
 		this.attrs = {};
+
+		// the attrs default value
+		for(var i in config.cmpDefine['attrs']){
+			var attr = config.cmpDefine['attrs'][i];
+			var attrName = attr['name'];
+			var val = attr['defaultValue'];
+			if(val === undefined){
+				val = '';
+			}
+			this.attrs[attrName] = val;
+		}
 	},
 
 	getRenderHtml : function(func){
@@ -242,7 +253,7 @@ var KwComponentBox = classdef({
 	this.dom.dialog({
 		dialogClass: "no-close",
 	  	position: { my: "right bottom", at: "right bottom", of: window },
-		width : 400,
+		width : 405,
 		height : 450
 	});
 

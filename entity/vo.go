@@ -24,15 +24,16 @@ type Attr struct {
 
 // 组件定义
 type CmpDefineEntity struct {
-	ArtifactId string   `json:"artifactId"` // 组件名称
-	GroupId    string   `json:"groupId"`    // 分
-	Title      string   `json:"title"`      // 组件名称
-	Leaf       bool     `json:"leaf"`       // 是否叶子组件
-	Category   string   `json:"category"`   // 分类
-	Thumbnail  string   `json:"thumbnail"`  // 缩略图
-	Attrs      []Attr   `json:"attrs"`      // 组件属性
-	Events     []string `json:"events"`     // 组件事件
-	Libs       []Lib    `json:"libs"`       // 组
+	ArtifactId  string   `json:"artifactId"`  // 组件名称
+	GroupId     string   `json:"groupId"`     // 分
+	Author      string   `json:"author"`      // author
+	Description string   `json:"description"` // description
+	Title       string   `json:"title"`       // 组件名称
+	Leaf        bool     `json:"leaf"`        // 是否叶子组件
+	Thumbnail   string   `json:"thumbnail"`   // 缩略图
+	Attrs       []Attr   `json:"attrs"`       // 组件属性
+	Events      []string `json:"events"`      // 组件事件
+	Libs        []Lib    `json:"libs"`        // 组
 }
 
 type CmpNodeEntity struct {
