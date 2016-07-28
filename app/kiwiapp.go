@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	c "github.com/alexxuyao/kiwiui/controller"
+	_ "github.com/alexxuyao/kiwiui/dao"
 	"github.com/gorilla/mux"
 )
 
