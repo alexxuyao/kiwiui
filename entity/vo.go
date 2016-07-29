@@ -42,3 +42,14 @@ type CmpNodeEntity struct {
 	Positions map[string][]CmpNodeEntity `json:"positions"` //
 	Attrs     map[string]string          `json:"attrs"`     //
 }
+
+// 用于索引组件
+type CmpIndexEntity struct {
+	Id          string   `json:"Id"`          // 自增ID
+	ArtifactId  string   `json:"artifactId"`  // 组件名称
+	GroupId     string   `json:"groupId"`     // 分
+	Author      string   `json:"author"`      // author
+	Description string   `json:"description"` // description
+	Title       string   `json:"title"`       // 组件名称
+	Docs        []string `json:"docs"`        // 文档
+}

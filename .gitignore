@@ -22,4 +22,7 @@ _testmain.go
 *.exe
 *.test
 *.prof
+<<<<<<< HEAD
 .idea
+=======
+>>>>>>> bd4e3d50ce10f469197fc62c3e5e26ad36de0e61
