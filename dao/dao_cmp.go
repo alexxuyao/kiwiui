@@ -49,3 +49,38 @@ func (dao *CmpDao) IndexCmpDefine(id string, cmpIndex *entity.CmpIndexEntity) {
 func (dao *CmpDao) SearchCmpDefine(word string) []*entity.CmpDefineEntity {
 	return nil
 }
+
+// 列出所有组件信息，从keyStart开始取count个(比keyStart大的)
+func (dao *CmpDao) ListCmpDefine(keyStart string, count int) []*entity.CmpDefineEntity {
+
+	result := make([]*entity.CmpDefineEntity, 0, count)
+
+	dao.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("cmp"))
+
+		c := b.Cursor()
+		k, v := c.Seek([]byte(keyStart))
+		index := 0
+
+		if string(k) > keyStart {
+			index = 1
+			var tmp entity.CmpDefineEntity
+			json.Unmarshal(v, &tmp)
+			result = append(result, &tmp)
+		}
+
+		for i := index; i < count; i++ {
+			k, v := c.Next()
+			if k == nil {
+				break
+			}
+			var tmp entity.CmpDefineEntity
+			json.Unmarshal(v, &tmp)
+			result = append(result, &tmp)
+		}
+
+		return nil
+	})
+
+	return result
+}

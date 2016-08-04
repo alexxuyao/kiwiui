@@ -16,7 +16,7 @@ func main() {
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", c.IndexController)
 
-	r.HandleFunc("/cmpList/{page:[0-9]+}", c.CmpListController)
+	r.HandleFunc("/cmpList/{cmpId:.*}", c.CmpListController)
 	r.HandleFunc("/getRenderHtml", c.GetRenderHtmlController)
 
 	// r.HandleFunc("/static/{file:.*}", c.StaticController)

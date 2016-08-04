@@ -1,3 +1,65 @@
+var constant = {
+	dropActiveColor : '#cccc66',
+	dropOverColor : '#aaaa33'
+}
+// 用来保证一次拖放只有一个接收者。jquery的greedy只能用在接收者有父子关系的层次结构中
+var dropUtil = {
+
+	receive : false,
+
+	// 是否已经接收了拖放事件
+	checkReceive : function(){
+		if(this.receive){
+			return true;
+		}
+
+		this.receive = true;
+
+		// fix jquery ui bug
+		$('.ui-droppable-hover').removeClass('ui-droppable-hover');
+		$('.ui-state-hover').removeClass('ui-state-hover');
+
+		return false;
+	},
+
+	// 开始拖动
+	start : function(){
+		this.receive = false;
+		this.over = false;
+	}
+}
+
+var util = {
+
+	// 注册忽略拖动事件
+	registerNotDrop : function(dom){
+		dom.droppable({
+			accept: ".cmp-define",
+			greedy: true,
+			out : function(event, ui ){
+				console.debug('not-drop out');
+			},
+			over : function(event, ui ){
+				console.debug('not-drop over');
+			},
+			drop: function( event, ui ) {
+				if(dropUtil.checkReceive()){
+					return;
+				}
+				console.debug('drop to not drop');
+				return false;
+			}
+		});
+	},
+
+	idIndex : 0,
+
+	// 生成一个唯一ID
+	newCmpId : function(){
+		return 'cmp-' + (++util.idIndex);
+	}
+}
+
 // Basic usage
 var CmpNode = classdef({
 	id : '',
@@ -66,18 +128,24 @@ var CmpNode = classdef({
 		});
 	},
 
+	// 添加一个子组件
 	addChild : function(child, position){
+
 		if(!this.positions[position]){
 			this.positions[position] = [];
 		}
 
 		this.positions[position].push(child);
+
+		// 找到要添加到的位置的dom元素
 		var rdom = $("[cmp-id='" + this.id + "']");
 		var pdom = rdom.find(".cmp-position[position='" + position + "']");
 		if(!pdom.length){
 			pdom = rdom;
 		}
 		pdom = pdom.eq(0);
+
+		// 渲染
 		child.renderTo(pdom);
 	},
 
@@ -103,72 +171,92 @@ var CmpNode = classdef({
 
 			// append new headers
 			$('head').append(head);
-			dom.html(body);
+			dom.append(body);
+			body = $('#' + self.id);
 
-			// refresh the body
-			// bind the events
-			dom.find( ".cmp-position" ).droppable({
-				accept: ".cmp-define",
-				greedy: true,
-			    classes: {
-			      "ui-droppable-active": "ui-state-active",
-			      "ui-droppable-hover": "ui-state-hover"
-			    },
-				drop: function( event, ui ) {
-					// TODO
-					// $( this ).css( "background", "#EEE" ).append('drop here!');
+			// 绑定拖动事件
+			var bodyPositions = [body.find( ".cmp-position" )];
+			if (body.hasClass('cmp-position')){
+				bodyPositions.push(body);
+			}
 
-					// var target = event.target;
-					var targetNode = self;
-					//var cmpDefine = ui.draggable.find('input').val();
-					var position = $( this ).attr('position');
+			for (var i in bodyPositions){
+				bodyPositions[i].droppable({
+					accept: ".cmp-define",
+					greedy: true,
+					activate: function( event, ui ) {
+						console.debug('activate');
+						var target = $(event.target);
 
-					// for test
-					var cmpDefine = {
-						artifactId : 'backendFrame',
-						groupId : 'hybird',
-						title : 'HyBird管理后台框架',
-						leaf : false,
-						category : 'frame',
-						thumbnail : '',
-						attrs : [{
-							name : 'systemName',
-							type : 'input',
-							defaultValue : 'HYBIRD',
-							description : '系统名称',
-							meta : {}
-						}],
-						events : [],
-						libs : [{
-							name : 'jquery',
-							version : '1.10'
-						},{
-							name : 'bootstrap',
-							version : '3'
-						},{
-							name : 'font-awesome',
-							version : '4.5'
-						}]
-					};
+						var ocss = {
+							'padding-top' : target.css('padding-top'),
+							'padding-left' : target.css('padding-top'),
+							'padding-right' : target.css('padding-top'),
+							'padding-bottom' : target.css('padding-top'),
+							'background-color' : target.css('background-color')
+						};
 
-					var child = new CmpNode({
-						cmpDefine : cmpDefine,
-						context : self.context
-					});
+						target.attr('old-style', JSON.stringify(ocss));
 
-					child.id = 'newId';
-					targetNode.addChild(child, position);
+						target.animate({
+					        padding : 20,
+							'background-color' : constant.dropActiveColor
+					    }, 200);
+					},
+					deactivate: function( event, ui ) {
+						console.debug('deactivate');
+						var target = $(event.target);
+						var ocss = $.parseJSON(target.attr('old-style'));
+						target.animate(ocss, 200);
+					},
+					out : function(event, ui ){
+						console.debug('out');
+						var target = $(event.target);
+						target.animate({
+							'background-color' : constant.dropActiveColor
+					    }, 200);
+					},
+					over : function(event, ui ){
+						console.debug('over');
+						var target = $(event.target);
+						target.animate({
+							'background-color' : constant.dropOverColor
+					    }, 200);
+					},
+					drop: function( event, ui ) {
 
-				}
-			});
+						if(dropUtil.checkReceive()){
+							return;
+						}
 
-			dom.find( ".not-drop" ).droppable({
-				accept: ".cmp-define",
-				greedy: true,
-				drop: function( event, ui ) {
-					return false;
-				}
-			});
+						console.debug('drop to cmp position');
+
+						// var target = event.target;
+						var targetNode = self;
+						var cmpDefine = $.parseJSON(ui.draggable.find('textarea').val());
+						var position = $( this ).attr('position');
+
+						var child = new CmpNode({
+							cmpDefine : cmpDefine,
+							context : self.context
+						});
+
+						child.id = util.newCmpId();
+						targetNode.addChild(child, position);
+
+					}
+				});
+			}
+
+			// 绑定not-drop事件，
+			var bodyNotDrops = [body.find( ".not-drop" )];
+			if (body.hasClass('not-drop')){
+				bodyNotDrops.push(body);
+			}
+
+			for (var i in bodyNotDrops){
+				util.registerNotDrop(bodyNotDrops[i]);
+			}
 
 		});
 	},
@@ -186,7 +274,9 @@ var KwContext = classdef({
 
 	constructor: function() {
 		this.cmpTreeRoot = null;
-		this.libs = {};
+		this.libs = {
+			'jquery' : '1.11'
+		};
 	},
 
 	// 初始化根组件
@@ -257,13 +347,15 @@ var KwComponentBox = classdef({
 		height : 450
 	});
 
-	this.loadList(1)
+	util.registerNotDrop(this.dom);
+
+	this.loadList("");
 
   },
 
-	loadList : function(page){
+	loadList : function(lastCmpId){
 		var self = this;
-		$.get('/cmpList/' + page, function(ret){
+		$.get('/cmpList/' + lastCmpId, function(ret){
 			self.initList(ret);
 		});
 	},
@@ -275,6 +367,7 @@ var KwComponentBox = classdef({
 				var item = ret.data[i];
 				html += '<div class="cmp-define">';
 				html += item.title;
+				html += '<textarea style="display:none;" >' + JSON.stringify(item) + '</textarea>';
 				html += '</div>';
 			}
 
@@ -285,7 +378,10 @@ var KwComponentBox = classdef({
 				revert: "invalid",
 				helper: "clone",
 				appendTo : 'body',
-				zIndex: 1000
+				zIndex: 1000,
+				start : function(){
+					dropUtil.start();
+				}
 			});
 		}
 	}
@@ -307,25 +403,4 @@ $(document).ready(function(){
 		events : []
 	});
 
-	/*
-	$( ".cmp-position" ).droppable({
-		accept: ".cmp-define",
-		greedy: true,
-	    classes: {
-	      "ui-droppable-active": "ui-state-active",
-	      "ui-droppable-hover": "ui-state-hover"
-	    },
-		drop: function( event, ui ) {
-			$( this ).css( "background", "#EEE" );
-		}
-	});
-
-	$( ".not-drop" ).droppable({
-		accept: ".cmp-define",
-		greedy: true,
-		drop: function( event, ui ) {
-			return false;
-		}
-	});
-	*/
 });

@@ -97,8 +97,13 @@ func RenderCmpNode(node entity.CmpNodeEntity) (map[string]entity.LibDetail, stri
 		docBody.Children().WrapAllHtml("<div></div>")
 	}
 
-	// set the component id, and then add class not-drop to the wrap.
-	docBody.Children().First().SetAttr("cmp-id", node.Id).AddClass("not-drop")
+	// 取出第一个元素，添加组件ID
+	dom := docBody.Children().First().SetAttr("cmp-id", node.Id).SetAttr("id", node.Id)
+
+	// 如果第一个元素不是位置元素，添加not-drop样式，防止误拖
+	if !dom.HasClass("cmp-position") {
+		dom.AddClass("not-drop")
+	}
 
 	head, _ := docHead.Html()
 	body, _ := docBody.Html()

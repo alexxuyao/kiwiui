@@ -12,7 +12,7 @@ import (
 
 var boltDB *bolt.DB = newBolt()
 
-var cmpDao *CmpDao = newCmpDao(boltDB)
+var CmpStore *CmpDao = newCmpDao(boltDB)
 
 func newBolt() *bolt.DB {
 	db, err := bolt.Open("kiwiui.db", 0600, nil)
@@ -35,7 +35,7 @@ func init() {
 	scanCmpDir(func(id string, define *entity.CmpDefineEntity, index *entity.CmpIndexEntity) {
 		fmt.Println(id)
 
-		cmpDao.SaveCmpDefine(id, define)
-		cmpDao.IndexCmpDefine(id, index)
+		CmpStore.SaveCmpDefine(id, define)
+		CmpStore.IndexCmpDefine(id, index)
 	})
 }

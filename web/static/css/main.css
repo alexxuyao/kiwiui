@@ -27,3 +27,12 @@ body{
 .ui-front {
     z-index: 1000;
 }
+
+#rootContainer .ui-state-active{
+	/*background:#cccc66;*/
+	/*border: 2px dotted #999933;*/
+}
+
+#rootContainer .not-drop{
+	background : #FFFFFF;
+}
