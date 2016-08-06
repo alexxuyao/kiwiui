@@ -1,0 +1,84 @@
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://localhost:8000/static/js/jquery.js"></script>
+<script src="http://localhost:8000/static/js/kiwidragdrop.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.tb div').kwdroppable({
+            // accept : 'word',
+            drop : function(e) {
+				$(this).append(e.drager.text());
+            },
+            activate : function(e){
+                $(this).css('border', '2px solid #000000');
+            },
+            deactivate : function(e){
+                $(this).css('border', '1px solid #ccc');
+            },
+            over : function(e){
+                $(this).css('border', '2px solid #0000FF');
+            },
+            out : function(e){
+                $(this).css('border', '2px solid #000000');
+            }
+        
+        });
+        
+        $('.drag').kwdraggable();
+    });
+</script>
+<style type="text/css">
+body {
+	
+}
+
+.tb div {
+	height: 200px;
+	padding: 50px;
+	border: 2px solid #CCCCCC;
+	background: #EEEEEE;
+}
+
+#d {
+	position: absolute;
+	top: 50px;
+	right: 300px;
+}
+
+.drag {
+	float: left;
+	width: 80px;
+	height: 80px;
+	margin: 20px;
+	border: 2px solid #CCCCCC;
+	background: #EEEEEE;
+}
+</style>
+</head>
+<body>
+	kwdragdrop测试
+	<div style="float: left;">
+		<div class="drag">a</div>
+		<div class="drag">b</div>
+		<div class="drag">c</div>
+		<div class="drag word">hello</div>
+		<div class="drag word">word</div>
+	</div>
+	<div style="clear: both"></div>
+	<table width="100%" class="tb">
+		<tr>
+			<td width="50%">
+				<div id="a">
+					<div id="b"></div>
+				</div>
+			</td>
+			<td>
+				<div id="c"></div>
+				<div id="d"></div>
+			</td>
+		</tr>
+	</table>
+
+</body>
+</html>
