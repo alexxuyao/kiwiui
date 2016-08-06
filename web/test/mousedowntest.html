@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://localhost:8000/static/js/jquery.js"></script>
+<script type="text/javascript">
+
+	$(document).ready(function() {
+		$('div').mousedown(function(e) {
+			// e.stopPropagation();			
+			console.debug($(this).attr('id') + ':down');
+			console.debug(e.pageX + ':' + e.pageY);
+			
+			$('body').append('<div id="ddhandler" style="border:none;border-radius:10px;padding:0px;width:20px;height:20px;background:#000;position:absolute;top:' + (e.pageY - 10) + 'px;left:'+(e.pageX - 10)+'px;"></div>');
+			
+		});
+		$('div').mouseup(function(e) {
+			// e.stopPropagation();
+			console.debug($(this).attr('id') + ':up');
+		});
+		$(document).mouseup(function(e){
+			console.debug('document:up');
+			$('#ddhandler').remove();
+		});
+		$(document).mousemove(function(e){
+			console.debug('document:move');
+			$('#ddhandler').css({
+				top : e.pageY - 10,
+				left : e.pageX - 10
+			});
+		});
+		
+	});
+</script>
+<style type="text/css">
+body{
+cursor:pointer;
+}
+div {
+	height: 200px;
+	padding: 50px;
+	border: 2px solid #CCCCCC;
+	background: #EEEEEE;
+}
+#b{
+	position:absolute;
+	top : 50px;
+	left : 200px;
+}
+</style>
+</head>
+<body id="body">
+	mousedown 及mouse up
+	<div id="a"></div>
+	<div id="b"></div>
+</body>
+</html>

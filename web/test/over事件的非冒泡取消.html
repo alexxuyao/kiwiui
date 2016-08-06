@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://localhost:8000/static/js/jquery.js"></script>
+<script type="text/javascript">
+
+	$(document).ready(function() {
+		$('div').mouseover(function(e) {
+			// e.stopPropagation();			
+			console.debug($(this).attr('id') + ':over');
+		});
+		$('div').mouseout(function(e) {
+			// e.stopPropagation();
+			console.debug($(this).attr('id') + ':out');
+		});
+		
+		$('body').mouseover(function(e) {
+			// e.stopPropagation();
+			console.debug($(this).attr('id') + ':over');
+		});
+		$('body').mouseout(function(e) {
+			// e.stopPropagation();
+			console.debug($(this).attr('id') + ':out');
+		});
+	});
+</script>
+<style type="text/css">
+div {
+	height: 200px;
+	padding: 50px;
+	border: 2px solid #CCCCCC;
+	background: #EEEEEE;
+}
+#b{
+	position:absolute;
+	top : 50px;
+	left : 200px;
+}
+</style>
+</head>
+<body id="body">
+	over事件的非冒泡
+	非父子关系的情况下，不用取消冒泡
+	<div id="a"></div>
+	<div id="b"></div>
+</body>
+</html>

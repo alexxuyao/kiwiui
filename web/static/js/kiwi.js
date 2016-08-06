@@ -1,4 +1,5 @@
 var constant = {
+	dropActiveLineColor : '#999900',
 	dropActiveColor : '#cccc66',
 	dropOverColor : '#aaaa33'
 }
@@ -32,21 +33,21 @@ var dropUtil = {
 var util = {
 
 	// 注册忽略拖动事件
-	registerNotDrop : function(dom){
+	registerNotDrop : function(dom, cmpId){
 		dom.droppable({
 			accept: ".cmp-define",
 			greedy: true,
 			out : function(event, ui ){
-				console.debug('not-drop out');
+				console.debug('not-drop out:' + cmpId);
 			},
 			over : function(event, ui ){
-				console.debug('not-drop over');
+				console.debug('not-drop over:' + cmpId);
 			},
 			drop: function( event, ui ) {
 				if(dropUtil.checkReceive()){
 					return;
 				}
-				console.debug('drop to not drop');
+				console.debug('drop to not drop:' + cmpId);
 				return false;
 			}
 		});
@@ -185,43 +186,52 @@ var CmpNode = classdef({
 					accept: ".cmp-define",
 					greedy: true,
 					activate: function( event, ui ) {
-						console.debug('activate');
+						event.stopPropagation();
+						console.debug('activate:' + self.id);
 						var target = $(event.target);
 
 						var ocss = {
 							'padding-top' : target.css('padding-top'),
-							'padding-left' : target.css('padding-top'),
-							'padding-right' : target.css('padding-top'),
-							'padding-bottom' : target.css('padding-top'),
+							'padding-left' : target.css('padding-left'),
+							'padding-right' : target.css('padding-right'),
+							'padding-bottom' : target.css('padding-bottom'),
 							'background-color' : target.css('background-color')
 						};
 
 						target.attr('old-style', JSON.stringify(ocss));
+						target.css('border-style', 'dashed');
 
-						target.animate({
-					        padding : 20,
+						target.css({
+					        'padding' : 20,
+							'border-width' : '2px',
+							'border-color' : '#000000',
 							'background-color' : constant.dropActiveColor
-					    }, 200);
+					    });
 					},
 					deactivate: function( event, ui ) {
-						console.debug('deactivate');
+						event.stopPropagation();
+						console.debug('deactivate:' + self.id);
 						var target = $(event.target);
 						var ocss = $.parseJSON(target.attr('old-style'));
-						target.animate(ocss, 200);
+						target.removeAttr('old-style');
+
+						target.css(ocss);
 					},
 					out : function(event, ui ){
-						console.debug('out');
+						event.stopPropagation();
+						console.debug('out:' + self.id);
 						var target = $(event.target);
-						target.animate({
+						target.css({
 							'background-color' : constant.dropActiveColor
-					    }, 200);
+					    });
 					},
 					over : function(event, ui ){
-						console.debug('over');
+						event.stopPropagation();
+						console.debug('over:' + self.id);
 						var target = $(event.target);
-						target.animate({
+						target.css({
 							'background-color' : constant.dropOverColor
-					    }, 200);
+					    });
 					},
 					drop: function( event, ui ) {
 
@@ -229,7 +239,7 @@ var CmpNode = classdef({
 							return;
 						}
 
-						console.debug('drop to cmp position');
+						console.debug('drop to cmp position:' + self.id);
 
 						// var target = event.target;
 						var targetNode = self;
@@ -255,7 +265,7 @@ var CmpNode = classdef({
 			}
 
 			for (var i in bodyNotDrops){
-				util.registerNotDrop(bodyNotDrops[i]);
+				util.registerNotDrop(bodyNotDrops[i], self.id);
 			}
 
 		});
@@ -347,7 +357,7 @@ var KwComponentBox = classdef({
 		height : 450
 	});
 
-	util.registerNotDrop(this.dom);
+	util.registerNotDrop(this.dom, 'cmpBox');
 
 	this.loadList("");
 
@@ -374,9 +384,11 @@ var KwComponentBox = classdef({
 			this.dom.find('.list').append(html);
 			this.dom.find('.cmp-define').draggable({
 				cursor: 'move',
-				cursorAt: { top: 50, left: 50 } ,
+				cursorAt: { top: 3, left: 3 } ,
 				revert: "invalid",
-				helper: "clone",
+				helper: function(){
+					return '<div style="width:18px;height:18px;background-color:#333;"></div>';
+				},
 				appendTo : 'body',
 				zIndex: 1000,
 				start : function(){

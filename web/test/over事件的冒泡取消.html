@@ -1,0 +1,32 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script src="http://localhost:8000/static/js/jquery.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		$('div').mouseover(function(e){
+			e.stopPropagation();
+			console.debug($(this).attr('id') + ':over');
+		})
+	});
+	</script>
+	<style type="text/css">
+		div{
+			height : 200px;
+			padding:50px;
+			border : 2px solid #CCCCCC;
+			background:#EEEEEE;
+		}
+	</style>
+</head>
+<body>
+over事件的冒泡取消
+<div id="a">
+	<div id="b">
+		<div id="c">
+			
+		</div>
+	</div>
+</div>
+</body>
+</html>
