@@ -9,7 +9,15 @@ var util = {
     // 注册忽略拖动事件
     registerNotDrop : function(dom, cmpId) {
         dom.kwdroppable({
-            accept : "cmp-define"
+            accept : "cmp-define",
+            activate : function(e) {
+                $(this).attr('old-style', $(this).attr('style'));
+                $(this).css('background-color', '#FFFFFF;');
+            },
+            deactivate : function(e) {                
+                var ostyle = $(this).attr('old-style');
+                $(this).removeAttr('style').attr('style', ostyle);
+            }
         });
     },
 
@@ -90,21 +98,14 @@ var CmpNode = classdef({
     },
 
     // 添加一个子组件
-    addChild : function(child, position) {
+    addChild : function(child, pdom) {
 
+        var position = pdom.attr('position');
         if (!this.positions[position]) {
             this.positions[position] = [];
         }
 
         this.positions[position].push(child);
-
-        // 找到要添加到的位置的dom元素
-        var rdom = $("[cmp-id='" + this.id + "']");
-        var pdom = rdom.find(".cmp-position[position='" + position + "']");
-        if (!pdom.length) {
-            pdom = rdom;
-        }
-        pdom = pdom.eq(0);
 
         // 渲染
         child.renderTo(pdom);
@@ -148,37 +149,23 @@ var CmpNode = classdef({
                         console.debug('activate:' + self.id);
                         var target = $(this);
 
-                        var ocss = {
-                            'padding-top' : target.css('padding-top'),
-                            'padding-left' : target.css('padding-left'),
-                            'padding-right' : target.css('padding-right'),
-                            'padding-bottom' : target.css('padding-bottom'),
-                            'background-color' : target.css('background-color')
-                        };
-
-                        target.attr('old-style', JSON.stringify(ocss));
+                        target.attr('old-style', $(this).attr('style'));
                         target.css('border-style', 'dashed');
 
-                        target.css({
+                        target.stop().animate({
                             'padding' : 20,
                             'border-width' : '2px',
-                            'border-color' : '#000000',
+                            'border-color' : constant.dropActiveLineColor,
                             'background-color' : constant.dropActiveColor
-                        });
+                        }, 200);
                     },
                     deactivate : function(e) {
                         console.debug('deactivate:' + self.id);
                         var target = $(this);
-                        var ocss = {};
-                        try{
-                            ocss = $.parseJSON(target.attr('old-style'));
-                        }catch(e){
-                            console.debug(e);
-                            console.debug(target.attr('old-style'));
-                        }
-                        target.removeAttr('old-style');
-
-                        target.css(ocss);
+                        var ostyle = target.attr('old-style');
+                        target.stop();
+                        target.removeAttr('style').attr('style', ostyle);
+                        // target.stop().animate(ocss, 200);
                     },
                     out : function(e) {
                         console.debug('out:' + self.id);
@@ -195,10 +182,9 @@ var CmpNode = classdef({
                         });
                     },
                     drop : function(e) {
-                        
+
                         var targetNode = self;
                         var cmpDefine = $.parseJSON(e.drager.find('textarea').val());
-                        var position = $(this).attr('position');
 
                         var child = new CmpNode({
                             cmpDefine : cmpDefine,
@@ -206,7 +192,7 @@ var CmpNode = classdef({
                         });
 
                         child.id = util.newCmpId();
-                        targetNode.addChild(child, position);
+                        targetNode.addChild(child, $(this));
 
                     }
                 });

@@ -25,10 +25,22 @@ var kwdd = {
         $(document).off('mouseup', kwdd.docmouseup);
 
         kwdd.hidecursor();
-
-        $('.kw-droppable').trigger('stopDrag', [ kwdd.target ]);
+        $('.kw-droppable').trigger('kwstopdrag', [ kwdd.target ]);
+        kwdd.stopdraghock();
 
         kwdd.target = null;
+    },
+    
+    startdraghock : function(){
+        // document cursor
+        $('body').attr('old-style', $('body').attr('style'));
+        $('body').css('cursor', 'move');
+    },
+    
+    stopdraghock : function(){
+        // document cursor
+        $('body').removeAttr('style');
+        $('body').attr('style', $('body').attr('old-style'));
     },
 
     appendcursor : function() {
@@ -101,11 +113,30 @@ $.fn.extend({
             $(document).on('mouseup', kwdd.docmouseup);
 
             kwdd.target = $(this);
-
-            $('.kw-droppable').trigger('startDrag', [ kwdd.target ]);
+            $('.kw-droppable').trigger('kwstartdrag', [ kwdd.target ]);
+            kwdd.startdraghock();
         });
     },
-    // 放
+
+    /**
+     * 放事件 obj :
+     * 
+     * accept: 一个class样式，不带.号，表示接受哪些元素的放事件
+     * 
+     * activate: 一个function
+     * 
+     * deactivate: 一个function
+     * 
+     * over: 一个function
+     * 
+     * out: 一个function
+     * 
+     * drop: 一个function
+     * 
+     * activateCls: 一个样式，在activate的时候添加，在deactivate的时候删除
+     * 
+     * overCls: 一个样式，在over的时候添加，在out的时候删除
+     */
     kwdroppable : function(obj) {
 
         obj = $.extend({}, obj);
@@ -122,23 +153,41 @@ $.fn.extend({
         $(this).addClass('kw-droppable');
 
         // 响应开始拖动事件
-        $(this).on('startDrag', function(target) {
+        $(this).on('kwstartdrag', function(e, target) {
+            // 停止事件冒泡
+            e.stopPropagation();
             if (kwdd.target && isAccept(kwdd.target)) {
+
+                // 触发激活事件
                 if (obj.activate) {
                     obj.activate.call(this, {
                         drager : kwdd.target
                     });
                 }
+
+                // 添加激活样式
+                if (obj.activateCls) {
+                    $(this).addClass(obj.activateCls);
+                }
             }
         });
 
         // 响应停止拖动事件
-        $(this).on('stopDrag', function(target) {
+        $(this).on('kwstopdrag', function(e, target) {
+            // 停止事件冒泡
+            e.stopPropagation();
             if (kwdd.target && isAccept(kwdd.target)) {
+
+                // 触发解除激活事件
                 if (obj.deactivate) {
                     obj.deactivate.call(this, {
                         drager : kwdd.target
                     });
+                }
+
+                // 移除激活样式
+                if (obj.activateCls) {
+                    $(this).removeClass(obj.activateCls);
                 }
             }
         });
@@ -150,11 +199,16 @@ $.fn.extend({
                 // 停止事件冒泡
                 e.stopPropagation();
 
-                // 触发放事件
+                // 触发进入区域事件
                 if (obj.over) {
                     obj.over.call(this, {
                         drager : kwdd.target
                     });
+                }
+
+                // 添加over样式
+                if (obj.overCls) {
+                    $(this).addClass(obj.overCls);
                 }
             }
         });
@@ -166,11 +220,16 @@ $.fn.extend({
                 // 停止事件冒泡
                 e.stopPropagation();
 
-                // 触发放事件
+                // 触发离开区域事件
                 if (obj.out) {
                     obj.out.call(this, {
                         drager : kwdd.target
                     });
+                }
+
+                // 移除over样式
+                if (obj.overCls) {
+                    $(this).removeClass(obj.overCls);
                 }
             }
         });
