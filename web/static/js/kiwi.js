@@ -156,6 +156,9 @@ var CmpNode = classdef({
 
         // 渲染
         child.renderTo(pdom);
+
+        this.context.fire('addchild', this, child, position);
+        this.context.putCmpMap(child.id, child);
     },
 
     /**
@@ -276,7 +279,11 @@ var KwContext = classdef({
     // 引用了哪些库
     libs : null,
 
+    // 用于记录注册了哪些事件
     evtRegs : null, // {'eventName' : [{obj:obj, callback: function(){}}, ...]}
+
+    // 组件ID与组件节点的散列表
+    cmpMap : null,
 
     /**
      * 初始化上文对象
@@ -284,6 +291,8 @@ var KwContext = classdef({
     constructor : function() {
         this.cmpTreeRoot = null;
         this.evtRegs = {};
+        this.cmpMap = {};
+
         this.libs = {
             'jquery' : '1.11',
             'ztree' : '3.5'
@@ -301,6 +310,7 @@ var KwContext = classdef({
         });
         this.cmpTreeRoot.id = 'cmpRoot';
         this.cmpTreeRoot.renderTo($('#rootContainer'));
+        this.putCmpMap(this.cmpTreeRoot.id, this.cmpTreeRoot);
     },
 
     /**
@@ -329,6 +339,29 @@ var KwContext = classdef({
                 this.libs[libName] = libVersion;
             }
         }
+    },
+
+    /**
+     * 添加到散列表中
+     */
+    putCmpMap : function(cmpId, node) {
+        this.cmpMap[cmpId] = node;
+    },
+
+    /**
+     * 根据ID取组件节点
+     */
+    getCmp : function(cmpId) {
+        return this.cmpMap[cmpId];
+    },
+
+    /**
+     * 从散列表中删除
+     */
+    removeCmpMap : function(cmpId) {
+        var old = this.getCmp(cmpId);
+        delete this.cmpMap[cmpId];
+        return old;
     },
 
     /**
@@ -367,7 +400,7 @@ var KwContext = classdef({
      * 触发事件
      */
     fire : function(evtName) {
-        var args = arguments.slice(1);
+        var args = Array.prototype.slice.call(arguments, 1);
         var evts = this.evtRegs[evtName];
 
         if (evts) {
@@ -383,32 +416,134 @@ var KwContext = classdef({
  * 组件树视图及属性视图
  */
 var KwTreeBox = classdef({
-    
+
+    tree : null,
+
+    ctx : null,
+
     constructor : function(ctx) {
         this.initComponent();
         this.ctx = ctx;
-        
+
         ctx.on('addchild', this, this.onAddChild);
         ctx.on('cmprender', this, this.onCmpRender);
     },
 
     initComponent : function() {
+
         $("#dialog").dialog({
             dialogClass : "no-close",
             position : {
                 my : "left bottom",
                 at : "left bottom",
                 of : window
+            },
+            width : 400,
+            height : 300
+        });
+
+        var self = this;
+
+        this.tree = $.fn.zTree.init($("#cmp-tree"), {
+            edit : {
+                enable : true,
+                showRemoveBtn : false,
+                showRenameBtn : false
+            },
+            data : {
+                simpleData : {
+                    enable : true
+                }
+            },
+            callback : {
+                beforeDrop : self.beforeDrop,
+                onDrop : self.onDrop,
+                onClick : function() {
+                    self.onClick.apply(self, arguments);
+                }
+            },
+            view : {
+                showIcon : false
             }
+        }, []);
+
+    },
+
+    onAddChild : function(parent, child, position) {
+        // 先找到父节点及父节点ID
+        var pnode = null;
+
+        if (parent) {
+            pnode = this.tree.getNodeByParam('id', parent.id);
+        }
+
+        // 添加position节点
+        // position节点的id规则
+        var sid = parent.id + '-pos-' + position;
+        var snode = this.tree.getNodeByParam('id', sid);
+        if (null == snode) {
+            this.tree.addNodes(pnode, -1, {
+                id : sid,
+                name : 'pos:' + position,
+                type : 'position'
+            });
+            snode = this.tree.getNodeByParam('id', sid);
+        }
+
+        // 添加child节点
+        znode = this.tree.addNodes(snode, -1, {
+            id : child.id,
+            name : child.attrs.name ? child.attrs.name : child.cmpDefine.title,
+            type : 'node'
         });
     },
-    
-    onAddChild : function(parent, child){
-        
+
+    onCmpRender : function(cmp) {
+
     },
-    
-    onCmpRender : function(cmp){
-        
+
+    beforeDrop : function(treeId, treeNodes, targetNode, moveType, isCopy) {
+        if (!targetNode) {
+            return false;
+        }
+
+        if ('inner' === moveType) {
+            return targetNode.type === 'position';
+        }
+
+        if ('prev' === moveType || 'next' === moveType) {
+            return targetNode.type === 'node';
+        }
+        return false;
+    },
+
+    onDrop : function(event, treeId, treeNodes, targetNode, moveType, isCopy) {
+        console.debug(treeNodes);
+        console.debug(targetNode);
+        console.debug(moveType);
+    },
+
+    onClick : function(e, t, node, f) {
+        if (node.type !== 'node') {
+            return;
+        }
+        var cmp = this.ctx.getCmp(node.id);
+        console.debug(cmp);
+        var html = '<form id="cmp-props-form">';
+        html += '<table width="100%" >';
+        for ( var i in cmp.attrs) {
+            html += '<tr>';
+            html += '<td>';
+            html += i;
+            html += '</td>';
+            html += '<td>';
+            html += cmp.attrs[i];
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</form>';
+
+        $('#cmp-prop-grid').html(html);
     }
 });
 

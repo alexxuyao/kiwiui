@@ -28,3 +28,24 @@ body{
 .ui-front {
     z-index: 1000;
 }
+
+ul.ztree.zTreeDragUL{
+	z-index : 99999;
+}
+
+.dlg-left{
+	width : 150px;
+	position : absolute;
+	background : #EFEFEF;
+}
+
+.dlg-right{
+	margin-left : 158px;
+	width : 250px;
+	min-height : 100px;
+}
+
+.kw-clear{
+	clear : both;
+}
+
